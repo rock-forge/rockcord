@@ -1,0 +1,39 @@
+name: Media integration
+on:
+  push:
+  pull_request:
+jobs:
+  media:
+    name: FFmpeg / ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install FFmpeg on Linux
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+      - name: Install FFmpeg on macOS
+        if: runner.os == 'macOS'
+        run: brew install ffmpeg
+      - name: Install FFmpeg on Windows
+        if: runner.os == 'Windows'
+        run: choco install ffmpeg --no-progress -y
+      - run: npm ci
+      - run: npm run test:media
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: media-results-${{ matrix.os }}
+          path: |
+            .tmp/media-local-result.json
+            .tmp/recording-result.json
+          if-no-files-found: ignore
+          include-hidden-files: true

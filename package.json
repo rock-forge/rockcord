@@ -1,0 +1,107 @@
+{
+  "name": "rockcord",
+  "version": "4.0.0-dev.5",
+  "description": "Rockcord: a maintained Discord client library with tested v13 APIs and DAVE media encryption",
+  "main": "./src/index.js",
+  "types": "./typings/index.d.ts",
+  "scripts": {
+    "all": "npm run build",
+    "test": "npm run test:unit && npm run lint:all && npm run docs:test && npm run test:typescript",
+    "test:unit": "node --test test/*.test.cjs",
+    "test:media": "node scripts/media-integration.cjs && node scripts/recording-integration.cjs",
+    "test:live": "node --env-file=.env scripts/live-voice-check.cjs",
+    "bench": "node --expose-gc scripts/bench.cjs",
+    "fix:all": "npm run lint:fix && npm run lint:typings:fix && npm run format",
+    "test:typescript": "tsc --noEmit",
+    "lint": "eslint src test scripts --ext .js,.cjs",
+    "lint:fix": "eslint src test scripts --ext .js,.cjs --fix",
+    "lint:typings": "prettier --check \"typings/**/*.ts\"",
+    "lint:typings:fix": "prettier --write \"typings/**/*.ts\"",
+    "format": "prettier --write src/**/*.js typings/**/*.ts",
+    "lint:all": "npm run lint &&  npm run lint:typings",
+    "docs": "node scripts/docs.cjs --output",
+    "docs:test": "node scripts/docs.cjs",
+    "build": "npm test && npm run docs"
+  },
+  "files": [
+    "src",
+    "typings",
+    "!typings/*.test-d.ts"
+  ],
+  "directories": {
+    "lib": "src",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rock-forge/rockcord.git"
+  },
+  "keywords": [
+    "discord.js",
+    "discord.js v13",
+    "selfbot",
+    "selfbot v13",
+    "djs",
+    "api",
+    "bot",
+    "node",
+    "discord",
+    "client",
+    "discordapp"
+  ],
+  "author": "Rock Forge (https://github.com/rock-forge)",
+  "license": "GNU General Public License v3.0",
+  "bugs": {
+    "url": "https://github.com/rock-forge/rockcord/issues"
+  },
+  "homepage": "https://github.com/rock-forge/rockcord#readme",
+  "dependencies": {
+    "@discordjs/builders": "^1.6.3",
+    "@discordjs/collection": "^2.1.1",
+    "@sapphire/async-queue": "^1.5.5",
+    "@sapphire/shapeshift": "^4.0.0",
+    "@snazzah/davey": "0.1.12",
+    "@types/node": "^22.10.7",
+    "@types/ws": "^8.5.10",
+    "discord-api-types": "^0.38.15",
+    "fetch-cookie": "^3.1.0",
+    "find-process": "^2.0.0",
+    "otplib": "^12.0.1",
+    "prism-media": "^1.3.5",
+    "qrcode": "^1.5.4",
+    "tough-cookie": "^5.1.2",
+    "tree-kill": "^1.2.2",
+    "undici": "^7.11.0",
+    "werift-rtp": "^0.8.4",
+    "ws": "^8.16.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "@discordjs/docgen": "^0.12.1",
+    "@types/debug": "^4.1.12",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-prettier": "^4.2.1",
+    "jsdoc-to-markdown": "^7.1.1",
+    "opusscript": "0.0.8",
+    "prettier": "^2.8.8",
+    "typescript": "^5.5.4"
+  },
+  "overrides": {
+    "jsdoc": "^4.0.5"
+  },
+  "contributors": [
+    {
+      "name": "devrock07",
+      "url": "https://github.com/devrock07"
+    }
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "tag": "latest"
+  }
+}
