@@ -33,9 +33,11 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          choco install ffmpeg --no-progress -y
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          $ffmpegBinary = Get-ChildItem -LiteralPath "$env:ChocolateyInstall\lib\ffmpeg" -Filter ffmpeg.exe -Recurse | Select-Object -First 1
+          $ffmpegArchive = Join-Path $env:RUNNER_TEMP 'rockcord-ffmpeg.zip'
+          $ffmpegDirectory = Join-Path $env:RUNNER_TEMP 'rockcord-ffmpeg'
+          Invoke-WebRequest -Uri 'https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip' -OutFile $ffmpegArchive
+          Expand-Archive -LiteralPath $ffmpegArchive -DestinationPath $ffmpegDirectory
+          $ffmpegBinary = Get-ChildItem -LiteralPath $ffmpegDirectory -Filter ffmpeg.exe -Recurse | Select-Object -First 1
           if (!$ffmpegBinary) { throw 'Installed FFmpeg executable was not found' }
           "FFMPEG_PATH=$($ffmpegBinary.FullName)" >> $env:GITHUB_ENV
           $ffmpegBinary.DirectoryName >> $env:GITHUB_PATH
