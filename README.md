@@ -13,6 +13,12 @@
   <a href="https://github.com/rock-forge/rockcord/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="GPL v3 license"></a>
 </p>
 
+> [!WARNING]
+> **Rock Forge and the Rockcord maintainers take no responsibility for Discord accounts blocked, suspended, or terminated after using this module. Use it at your own risk.**
+
+> [!CAUTION]
+> **Automating a normal Discord user account (a self-bot) is prohibited by [Discord's self-bot policy](https://support.discord.com/hc/en-us/articles/115002192352-Automated-User-Accounts-Self-Bots) and can result in account termination.**
+
 ## Installation
 
 ```sh
