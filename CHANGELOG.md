@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Redesign the README with the Rockcord otter mascot, status badges, a client example, feature cards and links to media options and verification results.
+- Review dependency PRs #13 and #14; update development-only globals to 17.13.0 and eslint-import-resolver-node to 0.4.0.
+
 ## 4.0.0 — Stable media and dependency repairs
 
 - Add loss-based adaptive video packet pacing: authenticated RTCP receiver reports lower the send rate under loss and allow gradual recovery. NACK feedback provides a fallback; retransmissions share the pacing budget. Queues, timers, retries and rate bounds are finite.

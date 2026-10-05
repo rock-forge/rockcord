@@ -20,3 +20,14 @@ Reviewed on 2026-10-05 against Rockcord's supported Node 22/24 environments. All
 The documentation dependency decision follows [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), which lists no patched braces release. npm audit reports zero advisories after the compatible v8 selection. This is the advisory snapshot at review time.
 
 Dependabot now groups weekly minor/patch updates, limits open PRs, and ignores the four incompatible major upgrades above and the affected documentation v9 series. Node 22/24 unit, lint, documentation and declaration checks and three-platform FFmpeg integration remain the release checks.
+
+## Post-release tooling updates
+
+Reviewed on 2026-10-05. These updates affect development tooling only; both PRs passed all nine platform checks before integration.
+
+| PR | Proposed update | Decision |
+| --- | --- | --- |
+| [13](https://github.com/rock-forge/rockcord/pull/13) | eslint-import-resolver-node 0.4.0 | Adopt. The resolver now respects package exports by default; the existing import-x configuration passes with this behavior. |
+| [14](https://github.com/rock-forge/rockcord/pull/14) | globals 17.13.0 | Adopt. Updated lint global definitions require Node 18 or newer, within Rockcord's Node 22.19+ requirement. |
+
+Integrated together under maintainer history. The complete local test suite and npm audit are rerun for the combined dependency tree; published 4.0.0 retains its original release dependencies.
