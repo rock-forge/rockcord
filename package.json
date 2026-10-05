@@ -88,7 +88,7 @@
     "jsdoc-to-markdown": "^7.1.1",
     "opusscript": "0.0.8",
     "prettier": "^2.8.8",
-    "typescript": "^5.5.4"
+    "typescript": "^7.0.2"
   },
   "overrides": {
     "jsdoc": "^4.0.5"
