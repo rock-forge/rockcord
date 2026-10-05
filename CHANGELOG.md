@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Restore the Rockcord.js banner alongside the mascot; add Rock Forge modification attribution and standardize package license metadata as GPL-3.0-only.
 - Redesign the README with the Rockcord otter mascot, status badges, a client example, feature cards and links to media options and verification results.
 - Review dependency PRs #13 and #14; update development-only globals to 17.13.0 and eslint-import-resolver-node to 0.4.0.
 

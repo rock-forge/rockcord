@@ -1,7 +1,21 @@
-GNU GENERAL PUBLIC LICENSE
+Rockcord.js — License and attribution
+
+Copyright (C) 2026 Rock Forge and devrock07 (Rockcord modifications)
+Copyright (C) 2022 aiko-chan-ai and discordjs (original source)
+
+Rockcord.js is distributed under the GNU General Public License, version 3.
+SPDX-License-Identifier: GPL-3.0-only
+
+Project: https://github.com/rock-forge/rockcord
+Original source attribution and notices are retained in the source and README.
+Dependencies retain their own licenses.
+
+The full license terms follow.
+
+                    GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007
 
- Copyright (C) 2022 aiko-chan-ai and discordjs
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
  Everyone is permitted to copy and distribute verbatim copies
  of this license document, but changing it is not allowed.
 

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/rock-forge/rockcord/main/docs/assets/rockcord-mascot.png" alt="Rockcord's otter mascot holding a rock" width="200">
+  <img src="https://raw.githubusercontent.com/rock-forge/rockcord/main/docs/assets/rockcord-banner.png" alt="Rockcord.js banner with the otter mascot" width="1000">
 </p>
 
 <h1 align="center">Rockcord.js</h1>
@@ -14,7 +14,7 @@
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-22.19%2B-339933?style=flat-square&logo=nodedotjs&logoColor=white" alt="Node.js 22.19 or newer"></a>
   <a href="https://github.com/rock-forge/rockcord/actions/workflows/lint.yml"><img src="https://img.shields.io/github/actions/workflow/status/rock-forge/rockcord/lint.yml?branch=main&label=checks&style=flat-square" alt="Unit, lint, documentation and type checks"></a>
   <a href="https://github.com/rock-forge/rockcord/actions/workflows/media.yml"><img src="https://img.shields.io/github/actions/workflow/status/rock-forge/rockcord/media.yml?branch=main&label=media&style=flat-square" alt="FFmpeg integration checks"></a>
-  <a href="https://github.com/rock-forge/rockcord/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-5865F2?style=flat-square" alt="GPL v3 license"></a>
+  <a href="https://github.com/rock-forge/rockcord/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0--only-5865F2?style=flat-square" alt="GPL-3.0-only license"></a>
 </p>
 
 <p align="center">
@@ -135,10 +135,13 @@ The [implementation report](https://github.com/rock-forge/rockcord/blob/main/doc
 
 Rockcord is maintained independently by [Rock Forge](https://github.com/rock-forge) and [devrock07](https://github.com/devrock07). It builds on [discord.js-selfbot-v13](https://github.com/aiko-chan-ai/discord.js-selfbot-v13) and [discord.js](https://github.com/discordjs/discord.js). Original source attribution and licensing are preserved; this repository starts with fresh Rock Forge commit history.
 
-Licensed under [GPL v3](https://github.com/rock-forge/rockcord/blob/main/LICENSE). Dependencies retain their own licenses.
+Rockcord modifications are copyright © 2026 Rock Forge and devrock07. Original source credits remain with their respective authors.
+
+Licensed under the [GNU General Public License v3.0 (`GPL-3.0-only`)](https://github.com/rock-forge/rockcord/blob/main/LICENSE), without warranty. Redistribution and modifications follow the terms in the license. Dependencies retain their own licenses.
 
 ---
 
 <p align="center">
+  <img src="https://raw.githubusercontent.com/rock-forge/rockcord/main/docs/assets/rockcord-mascot.png" alt="Rockcord's otter mascot holding a rock" width="130"><br>
   <strong>Rockcord.js</strong> · Made by <a href="https://github.com/rock-forge">Rock Forge</a>
 </p>
