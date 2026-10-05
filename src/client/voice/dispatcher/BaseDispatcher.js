@@ -133,6 +133,19 @@ class BaseDispatcher extends Writable {
       this._syncDispatcher.once('start', cb);
       this._syncStartTimer = setTimeout(cb, 10_000).unref();
     }
+    // Announce both dispatchers before arbitrating the initial encrypted frame,
+    // so audio/video synchronization cannot deadlock against startup ownership.
+    const dave = this.player.voiceConnection?.dave;
+    if (dave?.beginMedia?.(this) === false) {
+      this._bootstrapWaitAt ??= performance.now();
+      if (performance.now() - this._bootstrapWaitAt > 10000) {
+        done(new Error('DAVE media bootstrap timed out'));
+        return;
+      }
+      this._bootstrapTimer = setTimeout(() => this._write(chunk, enc, done), 5).unref();
+      return;
+    }
+    this._bootstrapWaitAt = null;
     try {
       if (this.getTypeDispatcher() === 'video') {
         this._codecCallback(chunk);
@@ -152,6 +165,8 @@ class BaseDispatcher extends Writable {
   }
 
   _cleanup() {
+    clearTimeout(this._bootstrapTimer);
+    this.player.voiceConnection?.dave?.releaseMedia?.(this);
     clearTimeout(this._stepTimer);
     clearTimeout(this._syncStartTimer);
     if (this._syncStartListener) this._syncDispatcher?.removeListener('start', this._syncStartListener);
@@ -246,9 +261,12 @@ class BaseDispatcher extends Writable {
       done();
     };
     const next = (this.count + 1) * this.FRAME_LENGTH - (performance.now() - this.startTime - this._pausedTime);
-    this._stepTimer = setTimeout(() => {
-      if ((!this.pausedSince || this._silence) && this._writeCallback) this._writeCallback();
-    }, Math.max(0, next)).unref();
+    this._stepTimer = setTimeout(
+      () => {
+        if ((!this.pausedSince || this._silence) && this._writeCallback) this._writeCallback();
+      },
+      Math.max(0, next),
+    ).unref();
     this.timestamp = (this.timestamp + this.TIMESTAMP_INC) % (MAX_UINT_32 + 1);
     if (this._packetState) this._packetState.timestamp = this.timestamp;
     this.count++;
@@ -385,15 +403,22 @@ class BaseDispatcher extends Writable {
       this.emit('debug', 'Failed to send a packet - no UDP socket');
       return;
     }
-    this.player.voiceConnection.sockets.udp.send(packet).catch(e => {
-      if (this.getTypeDispatcher() === 'audio') {
-        this._setSpeaking(0);
-      } else if (this.getTypeDispatcher() === 'video') {
-        this._setVideoStatus(false);
-        this._setStreamStatus(true);
-      }
-      this.emit('debug', `Failed to send a packet - ${e}`);
-    });
+    this.player.voiceConnection.sockets.udp
+      .send(packet)
+      .then(() => {
+        if (this.getTypeDispatcher() === 'audio' || packet[1] & 0x80) {
+          this.player.voiceConnection.dave?.sentMedia?.(this);
+        }
+      })
+      .catch(e => {
+        if (this.getTypeDispatcher() === 'audio') {
+          this._setSpeaking(0);
+        } else if (this.getTypeDispatcher() === 'video') {
+          this._setVideoStatus(false);
+          this._setStreamStatus(true);
+        }
+        this.emit('debug', `Failed to send a packet - ${e}`);
+      });
   }
 
   _setSpeaking(value) {

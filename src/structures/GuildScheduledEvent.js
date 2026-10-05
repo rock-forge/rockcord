@@ -160,14 +160,12 @@ class GuildScheduledEvent extends Base {
       this.creator ??= this.client.users.resolve(this.creatorId);
     }
 
-    /* eslint-disable max-len */
     /**
      * Represents the additional metadata for a {@link GuildScheduledEvent}
      * @see {@link https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-metadata}
      * @typedef {Object} GuildScheduledEventEntityMetadata
      * @property {?string} location The location of the guild scheduled event
      */
-    /* eslint-enable max-len */
 
     if ('entity_metadata' in data) {
       if (data.entity_metadata) {

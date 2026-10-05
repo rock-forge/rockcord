@@ -164,7 +164,7 @@ class Collector extends EventEmitter {
 
       const onEnd = () => {
         cleanup();
-        reject(this.collected); // eslint-disable-line prefer-promise-reject-errors
+        reject(this.collected);
       };
 
       this.on('collect', onCollect);
@@ -246,7 +246,6 @@ class Collector extends EventEmitter {
         if (queue.length) {
           yield queue.shift();
         } else {
-          // eslint-disable-next-line no-await-in-loop
           await new Promise(resolve => {
             const tick = () => {
               this.removeListener('collect', tick);
@@ -267,7 +266,6 @@ class Collector extends EventEmitter {
     return Util.flatten(this);
   }
 
-  /* eslint-disable no-empty-function */
   /**
    * The reason this collector has ended with, or null if it hasn't ended yet
    * @type {?string}
@@ -295,7 +293,6 @@ class Collector extends EventEmitter {
    * @abstract
    */
   dispose() {}
-  /* eslint-enable no-empty-function */
 }
 
 module.exports = Collector;

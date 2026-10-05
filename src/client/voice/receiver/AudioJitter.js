@@ -49,10 +49,13 @@ class AudioJitter {
 
   _schedule() {
     if (this.timer || !this.packets.size) return;
-    this.timer = setTimeout(() => {
-      this.timer = null;
-      this._play();
-    }, Math.max(0, this.next - performance.now())).unref();
+    this.timer = setTimeout(
+      () => {
+        this.timer = null;
+        this._play();
+      },
+      Math.max(0, this.next - performance.now()),
+    ).unref();
   }
 
   _play() {

@@ -290,9 +290,9 @@ class GroupDMChannel extends Channel {
   async removeInvite(invite) {
     // Resolve
     let code = invite?.code;
-    if (!code && URL.canParse(invite)) code = new URL(invite).pathname.slice(1);
-    else code = invite;
-    await this.client.api.channels(this.id).invites[invite].delete();
+    if (!code) code = typeof invite === 'string' && URL.canParse(invite) ? new URL(invite).pathname.slice(1) : invite;
+    if (typeof code !== 'string' || !code) throw new TypeError('Invalid invite');
+    await this.client.api.channels(this.id).invites[code].delete();
     return this;
   }
 
@@ -373,7 +373,7 @@ class GroupDMChannel extends Channel {
   }
 
   // These are here only for documentation purposes - they are implemented by TextBasedChannel
-  /* eslint-disable no-empty-function */
+
   get lastMessage() {}
   get lastPinAt() {}
   send() {}

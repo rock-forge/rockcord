@@ -1456,7 +1456,6 @@ exports.StickerFormatTypes = createEnum([null, 'PNG', 'APNG', 'LOTTIE', 'GIF']);
  */
 exports.OverwriteTypes = createEnum(['role', 'member']);
 
-/* eslint-disable max-len */
 /**
  * The type of an {@link ApplicationCommand} object:
  * * CHAT_INPUT
@@ -1763,7 +1762,6 @@ exports.GuildScheduledEventStatuses = createEnum([null, 'SCHEDULED', 'ACTIVE', '
  * @see {@link https://discord.com/developers/docs/resources/guild-scheduled-event#guild-scheduled-event-object-guild-scheduled-event-entity-types}
  */
 exports.GuildScheduledEventEntityTypes = createEnum([null, 'STAGE_INSTANCE', 'VOICE', 'EXTERNAL']);
-/* eslint-enable max-len */
 
 /**
  * The camera video quality mode of a {@link VoiceChannel}:

@@ -58,7 +58,7 @@ class GuildChannelManager extends CachedManager {
   get channelCountWithoutThreads() {
     return this.cache.reduce((acc, channel) => {
       if (ThreadChannelTypes.includes(channel.type)) return acc;
-      return ++acc;
+      return acc + 1;
     }, 0);
   }
 
@@ -155,7 +155,7 @@ class GuildChannelManager extends CachedManager {
   ) {
     parent &&= this.client.channels.resolveId(parent);
     permissionOverwrites &&= permissionOverwrites.map(o => PermissionOverwrites.resolve(o, this.guild));
-    const intType = typeof type === 'number' ? type : ChannelTypes[type] ?? ChannelTypes.GUILD_TEXT;
+    const intType = typeof type === 'number' ? type : (ChannelTypes[type] ?? ChannelTypes.GUILD_TEXT);
 
     const videoMode = typeof videoQualityMode === 'number' ? videoQualityMode : VideoQualityModes[videoQualityMode];
 
@@ -167,7 +167,6 @@ class GuildChannelManager extends CachedManager {
     if (intType === ChannelTypes.GUILD_STORE && !storeChannelDeprecationEmitted) {
       storeChannelDeprecationEmitted = true;
       process.emitWarning(
-        // eslint-disable-next-line max-len
         'Creating store channels is deprecated by Discord and will stop working in March 2022. Check the docs for more info.',
         'DeprecationWarning',
       );

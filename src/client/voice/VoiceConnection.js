@@ -726,8 +726,8 @@ class VoiceConnection extends EventEmitter {
     }
   }
 
-  playAudio() {} // eslint-disable-line no-empty-function
-  playVideo() {} // eslint-disable-line no-empty-function
+  playAudio() {}
+  playVideo() {}
 
   /**
    * Create new connection to screenshare stream

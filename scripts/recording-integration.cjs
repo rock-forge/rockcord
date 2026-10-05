@@ -22,14 +22,15 @@ async function bounded(promise, label) {
   }
 }
 
-async function recording(writable) {
-  const media = setup();
-  const file = `${root}/recorded-${writable ? 'stream' : 'file'}.mkv`;
+async function recording(writable, codec) {
+  const media = setup(codec);
+  const file = `${root}/recorded-${codec}-${writable ? 'stream' : 'file'}.mkv`;
   const output = writable ? new PassThrough() : file;
   const chunks = [];
   if (writable) output.on('data', chunk => chunks.push(chunk));
   const finished = writable ? once(output, 'finish') : Promise.resolve();
-  const recorder = media.handler.makeVideoStream(media.aliceId, output);
+  const recorder = media.handler.makeVideoStream(media.aliceId, output, { codec });
+  recorder.on('debug', message => fs.appendFileSync(`${root}/recorded-${codec}-debug.log`, `${message}\n`));
   const errors = [];
   recorder.on('error', error => errors.push(error));
   try {
@@ -53,12 +54,15 @@ async function recording(writable) {
     assert.equal(video.length, 160 * 120 * 1.5 * 10);
     assert.ok(audio.length >= 48000 * 2 * 2 * 0.9);
     assert.ok(audio.some(byte => byte !== 0));
-    return {
+    const result = {
+      codec,
       output: writable ? 'Writable' : 'file',
       frames: 10,
       audioBytes: audio.length,
       bytes: fs.statSync(file).size,
     };
+    console.log(JSON.stringify(result));
+    return result;
   } finally {
     await bounded(
       recorder.stop().catch(() => {}),
@@ -70,7 +74,10 @@ async function recording(writable) {
 }
 
 async function main() {
-  const results = [await recording(false), await recording(true)];
+  const results = [];
+  for (const codec of ['H264', 'VP8', 'H265']) {
+    for (const writable of [false, true]) results.push(await recording(writable, codec));
+  }
   fs.writeFileSync('.tmp/recording-result.json', JSON.stringify(results, null, 2));
   console.log(JSON.stringify({ recording: results }));
 }

@@ -154,7 +154,7 @@ class RequestHandler {
       }
 
       // Decide before allocating a delay: a rejected limit must not leave an unused promise/timer.
-      await this.onRateLimit(request, limit, timeout, isGlobal); // eslint-disable-line no-await-in-loop
+      await this.onRateLimit(request, limit, timeout, isGlobal);
 
       if (isGlobal) {
         // If this is the first task to reach the global timeout, set the global delay
@@ -168,7 +168,7 @@ class RequestHandler {
       }
 
       // Wait for the timeout to expire in order to avoid an actual 429
-      await delayPromise; // eslint-disable-line no-await-in-loop
+      await delayPromise;
     }
 
     // As the request goes out, update the global usage information
@@ -378,7 +378,7 @@ class RequestHandler {
     rqToken : [REDACTED]`,
           );
           const solved = await this.manager.client.options.captchaSolver(data, request.fullUserAgent);
-          const captcha = typeof solved === 'string' ? solved : solved?.token ?? solved?.data;
+          const captcha = typeof solved === 'string' ? solved : (solved?.token ?? solved?.data);
           if (typeof captcha !== 'string' || !captcha) throw new Error('Captcha solver must return a non-empty token');
           this.manager.client.emit(
             DEBUG,

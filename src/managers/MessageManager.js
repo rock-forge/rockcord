@@ -139,16 +139,17 @@ class MessageManager extends CachedManager {
 
     const preserveAttachments =
       (options instanceof MessagePayload ? options.options : options)?.attachments === undefined;
-    const { data, files } = await (options instanceof MessagePayload
-      ? options
-      : MessagePayload.create(message instanceof Message ? message : this, options)
+    const { data, files } = await (
+      options instanceof MessagePayload
+        ? options
+        : MessagePayload.create(message instanceof Message ? message : this, options)
     )
       .resolveData()
       .resolveFiles();
 
     if (files.length && preserveAttachments) {
       const original =
-        message instanceof Message ? message : this.cache.get(messageId) ?? (await this.fetch(messageId));
+        message instanceof Message ? message : (this.cache.get(messageId) ?? (await this.fetch(messageId)));
       data.attachments = [...original.attachments.values()].map(attachment => ({ id: attachment.id }));
     }
     data.attachments = await Util.resolveUploadedAttachments(this.client, this.channel.id, files, data.attachments);
@@ -221,7 +222,6 @@ class MessageManager extends CachedManager {
       ? `${emoji.animated ? 'a:' : ''}${emoji.name}:${emoji.id}`
       : encodeURIComponent(emoji.name);
 
-    // eslint-disable-next-line newline-per-chained-call
     await this.client.api
       .channels(this.channel.id)
       .messages(message)

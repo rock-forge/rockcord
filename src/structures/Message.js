@@ -549,7 +549,6 @@ class Message extends Base {
    * @readonly
    */
   get cleanContent() {
-    // eslint-disable-next-line eqeqeq
     return this.content != null && this.channel ? Util.cleanContent(this.content, this.channel) : null;
   }
 
@@ -604,9 +603,9 @@ class Message extends Base {
   get editable() {
     const precheck = Boolean(
       this.author.id === this.client.user.id &&
-        !deletedMessages.has(this) &&
-        (!this.guild || this.channel?.viewable) &&
-        this.reference?.type !== 'FORWARD',
+      !deletedMessages.has(this) &&
+      (!this.guild || this.channel?.viewable) &&
+      this.reference?.type !== 'FORWARD',
     );
 
     // Regardless of permissions thread messages cannot be edited if
@@ -646,8 +645,8 @@ class Message extends Base {
 
     return Boolean(
       this.author.id === this.client.user.id ||
-        (permissions.has(Permissions.FLAGS.MANAGE_MESSAGES, false) &&
-          this.guild.members.me.communicationDisabledUntilTimestamp < Date.now()),
+      (permissions.has(Permissions.FLAGS.MANAGE_MESSAGES, false) &&
+        this.guild.members.me.communicationDisabledUntilTimestamp < Date.now()),
     );
   }
 
@@ -672,10 +671,10 @@ class Message extends Base {
     const { channel } = this;
     return Boolean(
       !this.system &&
-        !deletedMessages.has(this) &&
-        (!this.guild ||
-          (channel?.viewable &&
-            channel?.permissionsFor(this.client.user)?.has(Permissions.FLAGS.MANAGE_MESSAGES, false))),
+      !deletedMessages.has(this) &&
+      (!this.guild ||
+        (channel?.viewable &&
+          channel?.permissionsFor(this.client.user)?.has(Permissions.FLAGS.MANAGE_MESSAGES, false))),
     );
   }
 
@@ -705,13 +704,13 @@ class Message extends Base {
     const { channel } = this;
     return Boolean(
       channel?.type === 'GUILD_NEWS' &&
-        !this.flags.has(MessageFlags.FLAGS.CROSSPOSTED) &&
-        this.reference?.type !== 'FORWARD' &&
-        this.type === 'DEFAULT' &&
-        !this.poll &&
-        channel.viewable &&
-        channel.permissionsFor(this.client.user)?.has(bitfield, false) &&
-        !deletedMessages.has(this),
+      !this.flags.has(MessageFlags.FLAGS.CROSSPOSTED) &&
+      this.reference?.type !== 'FORWARD' &&
+      this.type === 'DEFAULT' &&
+      !this.poll &&
+      channel.viewable &&
+      channel.permissionsFor(this.client.user)?.has(bitfield, false) &&
+      !deletedMessages.has(this),
     );
   }
 

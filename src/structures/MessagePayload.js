@@ -135,7 +135,7 @@ class MessagePayload {
     let nonce = SnowflakeUtil.generate();
     if (typeof this.options.nonce !== 'undefined') {
       nonce = this.options.nonce;
-      // eslint-disable-next-line max-len
+
       if (typeof nonce === 'number' ? !Number.isInteger(nonce) : typeof nonce !== 'string') {
         throw new RangeError('MESSAGE_NONCE_TYPE');
       }
@@ -177,7 +177,7 @@ class MessagePayload {
     let message_reference;
     if (typeof this.options.reply === 'object') {
       const reference = this.options.reply.messageReference;
-      const message_id = this.isMessage ? reference.id ?? reference : this.target.messages.resolveId(reference);
+      const message_id = this.isMessage ? (reference.id ?? reference) : this.target.messages.resolveId(reference);
       if (message_id) {
         message_reference = {
           message_id,

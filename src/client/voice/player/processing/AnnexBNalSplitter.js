@@ -147,7 +147,6 @@ class AnnexBNalSplitter extends Transform {
     const newData = Buffer.allocUnsafe(data.length);
     let newLength = 0;
 
-    // eslint-disable-next-line no-constant-condition
     while (true) {
       const epbsPos = data.indexOf(epbPrefix);
       if (epbsPos === -1) {

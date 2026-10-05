@@ -51,6 +51,8 @@ class DAVE {
   }
 
   reinit(version = this.targetVersion) {
+    this._mediaStarted = false;
+    this._bootstrapSender = null;
     this.validateVersion(version);
     this.blocked = true;
     if (!version) return;
@@ -81,6 +83,8 @@ class DAVE {
     this.version = this.targetVersion = this.pending.get(id);
     this.pending.delete(id);
     this.lastTransition = id;
+    this._mediaStarted = false;
+    this._bootstrapSender = null;
     this.recovering = false;
     this.blocked = this.version > 0 && !this.session?.ready;
     // When upgrading, expire the explicitly permitted plaintext grace period after ten seconds.
@@ -137,13 +141,34 @@ class DAVE {
   encrypt(frame, codec = 'OPUS') {
     if (this.closed || !this.negotiated) return null;
     // The protocol's Opus silence marker is exempt from frame encryption, including while joining.
-    if (codec === 'OPUS' && SILENCE_FRAME.equals(frame)) return frame;
+    if (codec === 'OPUS' && SILENCE_FRAME.equals(frame)) {
+      // Exempt silence must not unlock nonce-zero startup ordering.
+      this._bootstrapSender = null;
+      return frame;
+    }
     if (this.blocked) return null;
     if (this.version === 0) return frame;
     if (!this.session?.ready) return null;
     const api = binding();
     if (api.Codec[codec] === undefined) throw new RangeError(`Unsupported DAVE codec: ${codec}`);
     return this.session.encrypt(codec === 'OPUS' ? api.MediaType.AUDIO : api.MediaType.VIDEO, api.Codec[codec], frame);
+  }
+
+  beginMedia(sender) {
+    if (this._mediaStarted || !this.version || this.blocked || !this.negotiated || !this.session?.ready) return true;
+    if (this._bootstrapSender && this._bootstrapSender !== sender) return false;
+    this._bootstrapSender = sender;
+    return true;
+  }
+
+  sentMedia(sender) {
+    if (this._bootstrapSender !== sender) return;
+    this._mediaStarted = true;
+    this._bootstrapSender = null;
+  }
+
+  releaseMedia(sender) {
+    if (this._bootstrapSender === sender) this._bootstrapSender = null;
   }
 
   decrypt(frame, userId, video = false) {

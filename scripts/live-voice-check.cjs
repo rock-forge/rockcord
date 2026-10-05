@@ -169,8 +169,7 @@ async function video(sender, recipient) {
   };
   try {
     if (process.env.TEST_RECORDING === '1') {
-      if (codec !== 'H264') throw new Error('Recorder supports H264 and Opus');
-      recorder = receive.createVideoStream(sender.user.id, '.tmp/media-samples/live-recorded.mkv');
+      recorder = receive.createVideoStream(sender.user.id, '.tmp/media-samples/live-recorded.mkv', { codec });
       recorder.on('debug', message => fs.appendFileSync('.tmp/live-recorder-debug.log', `${safe(message)}\n`));
       recorder.on('error', error => report({ stage: 'recorder error', failed: safe(error) }));
       await bound(once(recorder, 'ready'), 'live recorder ready', 10000);
@@ -191,18 +190,15 @@ async function video(sender, recipient) {
           });
         })
       : Promise.resolve();
+    const congestionChanges = [];
+    const videoDispatcher = sender.voice.connection.playVideo('.tmp/media-samples/video-long.mp4', {
+      fps: 10,
+      inputFFmpegArgs: ['-stream_loop', '-1'],
+      outputFFmpegArgs: ['-g', '10', '-t', String(videoDuration)],
+    });
+    videoDispatcher.on('congestion', state => congestionChanges.push(state));
     await bound(
-      Promise.all([
-        concurrentAudio,
-        once(
-          sender.voice.connection.playVideo('.tmp/media-samples/video-long.mp4', {
-            fps: 10,
-            inputFFmpegArgs: ['-stream_loop', '-1'],
-            outputFFmpegArgs: ['-g', '10', '-t', String(videoDuration)],
-          }),
-          'finish',
-        ),
-      ]),
+      Promise.all([concurrentAudio, once(videoDispatcher, 'finish')]),
       `${codec} playback`,
       videoDuration * 1000 + 15000,
     );
@@ -223,6 +219,8 @@ async function video(sender, recipient) {
       dropped,
       recovery: sender.voice.connection._mediaRecovery.stats,
       receiveRecovery: packets.recovery.stats,
+      congestion: videoDispatcher.congestionControl?.state,
+      congestionChanges,
     });
     const encoded = encodedVideo(frames, codec);
     const receivedFile = `.tmp/media-samples/live-received.${encoded.format}`;
@@ -279,7 +277,7 @@ async function video(sender, recipient) {
       );
       const recordedFrames = (recording.stdout?.length || 0) / 28800;
       report({
-        stage: 'live H264 recording',
+        stage: `live ${codec} recording`,
         recordedFrames,
         pass: recording.status === 0 && recordedFrames >= decodedFrames * 0.8,
       });

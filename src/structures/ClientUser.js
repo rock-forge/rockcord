@@ -15,11 +15,19 @@ const Util = require('../util/Util');
  */
 class ClientUser extends User {
   #packageName = null;
-  #intervalSamsungPresence = setInterval(() => {
-    this.client.emit('debug', `[UPDATE] Samsung Presence: ${this.#packageName}`);
-    if (!this.#packageName) return;
-    this.setSamsungActivity(this.#packageName, 'UPDATE');
-  }, 1000 * 60 * 10).unref();
+  #intervalSamsungPresence = setInterval(
+    () => {
+      this.client.emit('debug', `[UPDATE] Samsung Presence: ${this.#packageName}`);
+      if (!this.#packageName) return;
+      this.setSamsungActivity(this.#packageName, 'UPDATE').catch(error => this.client.emit('debug', error));
+    },
+    1000 * 60 * 10,
+  ).unref();
+
+  _stopSamsungPresence() {
+    clearInterval(this.#intervalSamsungPresence);
+    this.#packageName = null;
+  }
 
   _patch(data) {
     super._patch(data);

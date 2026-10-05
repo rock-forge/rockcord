@@ -92,16 +92,18 @@ class VoiceReceiver extends EventEmitter {
   /**
    * Creates a new video receiving stream. If a stream already exists for a user, then that stream will be returned
    * rather than generating a new one.
-   * Records received H264 video and Opus audio using FFmpeg.
+   * Records received H264, H265 or VP8 video and Opus audio using FFmpeg.
    * Wait for `ready` before sending media and await `stop()` to finalize the output.
    * @param {UserResolvable} user The user to start listening to.
    * @param {WritableStream|string} output Output stream or file path to write the video stream to.
+   * @param {Object} [options] Recording options
+   * @param {VideoCodec} [options.codec='H264'] The codec sent by the recorded participant
    * @returns {Recorder} The video stream for the specified user.
    */
-  createVideoStream(user, output) {
+  createVideoStream(user, output, options = {}) {
     user = this.connection.client.users.resolve(user);
     if (!user) throw new Error('VOICE_USER_MISSING');
-    const stream = this.packets.makeVideoStream(user.id, output);
+    const stream = this.packets.makeVideoStream(user.id, output, options);
     this._updateVideoSubscriptions();
     stream.once('closed', () => this._updateVideoSubscriptions());
     return stream;

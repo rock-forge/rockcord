@@ -16,11 +16,11 @@ class VoiceStateUpdate extends Action {
       const newState = guild.voiceStates._add(data);
 
       // Get the member
-      let member = guild.members.cache.get(data.user_id);
+      const member = guild.members.cache.get(data.user_id);
       if (member && data.member) {
         member._patch(data.member);
       } else if (data.member?.user && data.member.joined_at) {
-        member = guild.members._add(data.member);
+        guild.members._add(data.member);
       }
 
       /**

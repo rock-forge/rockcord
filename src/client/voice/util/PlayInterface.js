@@ -91,6 +91,8 @@ class PlayInterface {
    * Ex: ['-config1', 'value1', '-config2', 'value2']
    * @property {number|'auto'} [bitrate=2000] The bitrate (quality) of the video in kbps.
    * If set to 'auto', ffmpeg will automatically select
+   * @property {boolean|Object} [congestionControl=true] Enable loss-based AIMD video pacing.
+   * An object can set bitrate and minBitrate in kbps. Audio playback is unaffected.
    */
 
   /**

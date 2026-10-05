@@ -276,7 +276,7 @@ class Options extends null {
 
     return manager => {
       const setting = settings[manager.name];
-      /* eslint-disable-next-line eqeqeq */
+
       if (setting == null) {
         return new Collection();
       }
@@ -286,14 +286,14 @@ class Options extends null {
         }
         return new LimitedCollection({ maxSize: setting });
       }
-      /* eslint-disable eqeqeq */
+
       const noSweeping =
         setting.sweepFilter == null ||
         setting.sweepInterval == null ||
         setting.sweepInterval <= 0 ||
         setting.sweepInterval === Infinity;
       const noLimit = setting.maxSize == null || setting.maxSize === Infinity;
-      /* eslint-enable eqeqeq */
+
       if (noSweeping && noLimit) {
         return new Collection();
       }

@@ -410,7 +410,6 @@ class ApplicationCommandPermissionsManager extends BaseManager {
 
 module.exports = ApplicationCommandPermissionsManager;
 
-/* eslint-disable max-len */
 /**
  * @external APIApplicationCommandPermissions
  * @see {@link https://discord.com/developers/docs/interactions/application-commands#application-command-permissions-object-application-command-permissions-structure}

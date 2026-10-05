@@ -19,7 +19,7 @@
 npm i rockcord
 ```
 
-Requires **Node.js 22 or newer**; tested on Node.js 22 and 24. Import with `require('rockcord')` or TypeScript imports from `'rockcord'`.
+Requires **Node.js 22.19.0 or newer**; tested on Node.js 22 and 24. Import with `require('rockcord')` or TypeScript imports from `'rockcord'`.
 
 Media playback also requires FFmpeg and a supported Opus binding. Keep optional dependencies enabled so npm can install DAVE's native binary for your platform.
 
@@ -30,9 +30,10 @@ Media playback also requires FFmpeg and a supported Opus binding. Keep optional 
 - Components V2 support and checked runtime exports with TypeScript declarations.
 - Bounded REST retries, request deadlines, credential redaction, and connection cleanup.
 - Native DAVE/MLS encryption for audio and video, complete received video frames, and voice privacy verification codes.
-- Screen-share connections, H264/VP8/H265 playback, H264/Opus recording, video retransmission, and buffered audio reception.
+- Screen-share connections and H264, VP8, and H265 playback and recording with Opus audio.
+- Adaptive video packet pacing using authenticated receiver loss reports, bounded retransmission, and buffered audio reception.
 
-This is a **development release**. Live audio, all three video codecs, screen sharing, H264 recording, and packet-loss recovery have passed targeted checks. See the [implementation report](https://github.com/rock-forge/rockcord/blob/main/docs/audit/IMPLEMENTATION.md) for coverage and limitations.
+The **4.0.0 stable release** includes the media repairs and reviewed dependency updates. See the [media options](https://github.com/rock-forge/rockcord/blob/main/docs/MEDIA.md), [dependency review](https://github.com/rock-forge/rockcord/blob/main/docs/audit/DEPENDENCY_REVIEW.md), and [implementation report](https://github.com/rock-forge/rockcord/blob/main/docs/audit/IMPLEMENTATION.md) for configuration and verification coverage.
 
 ## Project links
 

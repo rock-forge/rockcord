@@ -1,4 +1,3 @@
-/* eslint-disable newline-per-chained-call */
 'use strict';
 
 const { Buffer } = require('node:buffer');

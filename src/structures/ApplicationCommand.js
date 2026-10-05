@@ -121,7 +121,6 @@ class ApplicationCommand extends Base {
       this.options ??= [];
     }
 
-    /* eslint-disable max-len */
     if ('default_permission' in data) {
       /**
        * Whether the command is enabled by default when the app is added to a guild
@@ -130,7 +129,6 @@ class ApplicationCommand extends Base {
        */
       this.defaultPermission = data.default_permission;
     }
-    /* eslint-disable max-len */
 
     if ('default_member_permissions' in data) {
       /**
@@ -307,7 +305,6 @@ class ApplicationCommand extends Base {
     return this.edit({ descriptionLocalizations });
   }
 
-  /* eslint-disable max-len */
   /**
    * Edits the default permission of this ApplicationCommand
    * @param {boolean} [defaultPermission=true] The default permission for this command
@@ -317,7 +314,6 @@ class ApplicationCommand extends Base {
   setDefaultPermission(defaultPermission = true) {
     return this.edit({ defaultPermission });
   }
-  /* eslint-enable max-len */
 
   /**
    * Edits the default member permissions of this ApplicationCommand
@@ -568,9 +564,9 @@ class ApplicationCommand extends Base {
       options: option.options?.map(o => this.transformOption(o, received)),
       [channelTypesKey]: received
         ? option.channel_types?.map(type => ChannelTypes[type])
-        : option.channelTypes?.map(type => (typeof type === 'string' ? ChannelTypes[type] : type)) ??
+        : (option.channelTypes?.map(type => (typeof type === 'string' ? ChannelTypes[type] : type)) ??
           // When transforming to API data, accept API data
-          option.channel_types,
+          option.channel_types),
       [minValueKey]: option.minValue ?? option.min_value,
       [maxValueKey]: option.maxValue ?? option.max_value,
       [minLengthKey]: option.minLength ?? option.min_length,
@@ -581,7 +577,6 @@ class ApplicationCommand extends Base {
 
 module.exports = ApplicationCommand;
 
-/* eslint-disable max-len */
 /**
  * @external APIApplicationCommand
  * @see {@link https://discord.com/developers/docs/interactions/application-commands#application-command-object-application-command-structure}

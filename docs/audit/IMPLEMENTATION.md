@@ -1,6 +1,6 @@
 # Revamp implementation status
 
-Rockcord development candidate: `4.0.0-dev.5`, based on original commit `bf38318902cea8d0110d638e1dfadc01aec6b7cc`. The standalone repository is [rock-forge/rockcord](https://github.com/rock-forge/rockcord); the package name, repository metadata, examples and documentation use `rockcord`. [Rockcord is published publicly on npm](https://www.npmjs.com/package/rockcord), with `rockforge:developers` granted read-write access. Original attribution and licenses are retained. Historical audit reports describe the original source, not the repaired candidate.
+Rockcord stable release: `4.0.0`, based on original commit `bf38318902cea8d0110d638e1dfadc01aec6b7cc`. The standalone repository is [rock-forge/rockcord](https://github.com/rock-forge/rockcord); the package name, repository metadata, examples and documentation use `rockcord`. [Rockcord is published publicly on npm](https://www.npmjs.com/package/rockcord), with `rockforge:developers` granted read-write access. Original attribution and licenses are retained. Historical audit reports describe the original source, not the repaired candidate.
 
 ## Implemented
 
@@ -38,13 +38,13 @@ Video delivery keeps default audio subscriptions enabled. Audio completion no lo
 
 Encrypted RTCP generic NACK feedback and RTX retransmission now use bounded caches and retry limits: 512 cached outgoing video packets for up to two seconds; up to 128 missing sequences per source, three feedback attempts, and a 500 ms recovery deadline. RTP, RTX and RTCP share a nonce counter for each negotiated key. Audio has a 40 ms initial playout window with bounded reordering, duplicate rejection, sequence wrap handling and silence padding.
 
-Recorder readiness follows bound RTP ports, not the first FFmpeg log line. SDP probing uses actual parameter sets, idle recording stays open, and RTCP BYE lets FFmpeg drain and finalize its Matroska trailer. `await recorder.stop()` waits for completion and reports failures; file and Writable outputs are verified. Windows temporary-file cleanup waits for child exit. Recording currently supports H264 video and Opus audio.
+Recorder readiness follows bound RTP ports, not the first FFmpeg log line. SDP probing uses actual parameter sets, idle recording stays open, and RTCP BYE lets FFmpeg drain and finalize its Matroska trailer. `await recorder.stop()` waits for completion and reports failures; file and Writable outputs are verified. Windows temporary-file cleanup waits for child exit. Recording supports H264, VP8 or H265 video with Opus audio, in both file and Writable outputs. Local RTP sequence normalization preserves initial codec frames and VP8 picture IDs advance per frame.
 
-H264, VP8 and H265 are negotiated according to the selected codec. H265 now reaches its FFmpeg encoder and dispatcher; H26x uses regular keyframes and video FPS is checked before spawning FFmpeg.
+H264, VP8 and H265 are negotiated according to the selected codec. H265 now reaches its FFmpeg encoder and dispatcher; All three codecs use regular keyframes; VP8 disables lookahead. H26x uses regular keyframes and video FPS is checked before spawning FFmpeg.
 
 ## Remaining limitations
 
-Targeted live checks establish the behaviors below, not exhaustive Discord compatibility. Multi-hour calls, large groups, high-resolution/high-bitrate performance, adaptation to prolonged congestion and interoperability with every official-client/device combination remain unverified. Loss recovery has fixed bounds, not an adaptive congestion controller. Recording other video codecs is not supported. Platform media CI exercises local generated fixtures without Discord credentials; live tests use Windows and two authorized accounts.
+Targeted checks establish the behaviors below. Long-call, large-group and high-resolution testing was excluded from this release at the maintainer’s request. Loss-based adaptive packet pacing now consumes authenticated RTCP receiver reports, with bounded NACK fallback and a shared primary/RTX pacing budget. It applies backpressure while preserving whole frames; it does not dynamically retune FFmpeg or implement delay-based GCC/TWCC. Each recorder handles one selected codec (H264, VP8 or H265) plus Opus; codec switching and transcoding during recording are unsupported. Platform media CI exercises generated fixtures without Discord credentials; live tests use Windows and two authorized accounts. See [media options](../MEDIA.md) and the [dependency review](DEPENDENCY_REVIEW.md).
 
 Every declared public class/function has a runtime entrypoint export checked by regression tests. This is not proof that every historical declaration matches every live Discord object. DAVE requires the platform's native binary. Hosted Linux/Windows CI on Node 22/24 passed for the organization migration; its run metadata is archived locally with the original repository backup.
 
@@ -54,9 +54,24 @@ No worker/batching/backup/quest subsystem was imported from the reference fork. 
 
 The GitHub repository is managed independently and has been recreated with fresh Rock Forge commit history. Original history, release archives and repository metadata were backed up locally before recreation. Source attribution and licensing are preserved in the redistributed files and credits.
 
+## Stable release changes
+
+- Adaptive packet pacing, authenticated receiver loss reports, stale-report rejection, rate bounds and cancellation checks. RTX recovery does not conceal primary-path loss from the controller.
+- All three recording codecs, file/Writable finalization, regular VP8 keyframes and native DAVE initial-frame ordering across synchronized audio/video.
+- Twelve dependency PRs reviewed together; compatible migrations preserve synchronous TOTP and Node 22/24 consumer support. jsdoc-to-markdown 8.0.3 avoids the unpatched advisory introduced by the proposed v9 tree.
+- Group-DM invite resolution and Samsung presence cleanup repaired. ESLint 10, import-x, Prettier 3 and asynchronous JSDoc parsing are in use.
+
 ## Verification
 
-Verified locally on Windows on 2026-10-04 and 2026-10-05:
+Stable candidate verified locally on Windows on 2026-10-05:
+
+- All 79 regression tests, source/declaration formatting, warning-free documentation generation and strict TypeScript checks passed after a clean lockfile install.
+- Real FFmpeg integration received and decoded all 10 frames for each video codec, plus 192,000 PCM bytes from 50 Opus packets. All six H264/VP8/H265 × file/Writable recordings retained every frame and decoded audio after idle input and graceful finalization.
+- npm audit reported zero vulnerabilities after the compatible documentation dependency selection.
+- Short live VP8 test: all 80 frames received, decoded and recorded with concurrent audio, nine deliberately dropped primary packets and 21 retransmissions. Authenticated loss feedback reduced the pacing target from 2,000,000 to 461,321 bits/s. No video DAVE decrypt failures occurred.
+- Short live H265 test: all 40 frames received, decoded and recorded with concurrent audio. The target recovered from 1,800,000 to 2,000,000 bits/s after healthy reports. Both accounts disconnected cleanly after each test. These are functional checks, with no long-call, large-group or high-resolution benchmark requirement.
+
+Earlier verification on 2026-10-04 and 2026-10-05:
 
 - Clean npm install from the lockfile, including the Windows native DAVE binary.
 - Node 24.15.0: all 69 runtime tests, source lint, declaration formatting, documentation validation and strict TypeScript checks passed for the media repairs.
@@ -70,6 +85,6 @@ Verified locally on Windows on 2026-10-04 and 2026-10-05:
 - Fresh archive installation: CommonJS exports, native DAVE loading and a strict TypeScript consumer checked separately.
 - Earlier offline benchmark delivered all 20,000 fixture events; after destruction only the console PipeWrap remained. Results from one machine are not a cross-platform performance claim.
 
-Credentials and generated media/results stay in ignored local files, outside the npm package. No token values are printed by the maintained live harness. Run npm ci and npm test for routine offline checks, npm run test:media for FFmpeg integration, and npm run test:live with private environment settings for the authorized two-account scenario. Optional settings include TEST_SCREENSHARE=1, TEST_RECORDING=1 (H264), VIDEO_CODEC=H264/VP8/H265, TEST_PACKET_LOSS=incoming/outgoing, and TEST_VIDEO_SECONDS=1..600. Live checks are separate from builds and CI.
+Credentials and generated media/results stay in ignored local files, outside the npm package. No token values are printed by the maintained live harness. Run npm ci and npm test for routine offline checks, npm run test:media for FFmpeg integration, and npm run test:live with private environment settings for the authorized two-account scenario. Optional settings include TEST_SCREENSHARE=1, TEST_RECORDING=1 (selected codec), VIDEO_CODEC=H264/VP8/H265, TEST_PACKET_LOSS=incoming/outgoing, and TEST_VIDEO_SECONDS=1..600. Live checks are separate from builds and CI.
 
 The historical docs/audit/repro programs intentionally assert old defects. Use them against the original audited commits when reproducing baseline findings; repaired behavior can make them fail.

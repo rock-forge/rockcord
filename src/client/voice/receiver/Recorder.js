@@ -21,8 +21,11 @@ const { StreamOutput } = require('../util/Socket');
  * @extends {EventEmitter}
  */
 class Recorder extends EventEmitter {
-  constructor(receiver, { userId, portUdpH264, portUdpOpus, output } = {}) {
+  constructor(receiver, { userId, codec = 'H264', portUdpVideo, portUdpH264, portUdpOpus, output } = {}) {
     super();
+
+    if (!['H264', 'H265', 'VP8'].includes(codec)) throw new RangeError('Unsupported recording codec');
+    this.codec = codec;
 
     Object.defineProperty(this, 'receiver', { value: receiver });
 
@@ -32,16 +35,15 @@ class Recorder extends EventEmitter {
      */
     this.userId = userId;
 
-    this.portUdpH264 = portUdpH264 || null;
-    this.portUdpH265 = null;
+    this.portUdpVideo = (portUdpVideo ?? portUdpH264) || null;
     this.portUdpOpus = portUdpOpus || null;
 
     this.promise = null;
 
-    if (!portUdpH264 || !portUdpOpus) {
+    if (!this.portUdpVideo || !portUdpOpus) {
       this.promise = (async () => {
-        const selected = new Set([this.portUdpH264, this.portUdpOpus].filter(Boolean));
-        const missing = Number(!this.portUdpH264) + Number(!this.portUdpOpus);
+        const selected = new Set([this.portUdpVideo, this.portUdpOpus].filter(Boolean));
+        const missing = Number(!this.portUdpVideo) + Number(!this.portUdpOpus);
         const ports = [];
         for (let attempt = 0; ports.length < missing && attempt < 64; attempt++) {
           const port = await randomPort('udp4');
@@ -51,7 +53,7 @@ class Recorder extends EventEmitter {
           }
         }
         if (ports.length < missing) throw new Error('Could not allocate recording ports');
-        this.portUdpH264 ??= ports.shift();
+        this.portUdpVideo ??= ports.shift();
         this.portUdpOpus ??= ports.shift();
       })();
     }
@@ -88,10 +90,25 @@ class Recorder extends EventEmitter {
     if (this.destroyed) return;
     // Keep stdin available for FFmpeg's graceful quit command. Reading SDP from
     // stdin and closing it leaves no way to write the Matroska trailer on Windows.
-    const sdpData = Util.getSDPCodecName(this.portUdpH264, this.portUdpH265, this.portUdpOpus).replace(
-      /;sprop-parameter-sets=[^;\r\n]+/,
+    this.portUdpH264 = this.codec === 'H264' ? this.portUdpVideo : null;
+    this.portUdpH265 = this.codec === 'H265' ? this.portUdpVideo : null;
+    this.portUdpVP8 = this.codec === 'VP8' ? this.portUdpVideo : null;
+    const videoType = Util.getPayloadType(this.codec);
+    const opusType = Util.getPayloadType('opus');
+    const sdpData = [
+      'v=0',
+      'o=- 0 0 IN IP4 127.0.0.1',
+      's=Rockcord recording',
+      'c=IN IP4 127.0.0.1',
+      't=0 0',
+      `m=video ${this.portUdpVideo} RTP/AVP ${videoType}`,
+      `a=rtpmap:${videoType} ${this.codec}/90000`,
+      ...(this.codec === 'H264' ? [`a=fmtp:${videoType} packetization-mode=1`] : []),
+      `m=audio ${this.portUdpOpus} RTP/AVP ${opusType}`,
+      `a=rtpmap:${opusType} opus/48000/2`,
+      `a=fmtp:${opusType} minptime=10;useinbandfec=1`,
       '',
-    );
+    ].join('\r\n');
     this._directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rockcord-recorder-'));
     this._sdpPath = path.join(this._directory, 'input.sdp');
     fs.writeFileSync(this._sdpPath, sdpData);
@@ -176,7 +193,7 @@ class Recorder extends EventEmitter {
         probe.bind(port, '127.0.0.1', () => probe.close(() => resolve(false)));
       });
     for (let attempt = 0; attempt < 120 && !this.destroyed; attempt++) {
-      const ports = await Promise.all([bound(this.portUdpH264), bound(this.portUdpOpus)]);
+      const ports = await Promise.all([bound(this.portUdpVideo), bound(this.portUdpOpus)]);
       if (ports.every(Boolean)) {
         this.ready = true;
         this.emit('ready', this);
@@ -206,15 +223,28 @@ class Recorder extends EventEmitter {
     const message = payload.serialize();
     // Get port from payloadType
     let port;
+    let kind;
     if (payload.header.payloadType === Util.getPayloadType('opus')) {
+      kind = 'audio';
       port = this.portUdpOpus;
       this._lastAudioHeader = payload.header;
-    } else if (payload.header.payloadType === Util.getPayloadType('H264')) {
-      port = this.portUdpH264;
+    } else if (payload.header.payloadType === Util.getPayloadType(this.codec)) {
+      kind = 'video';
+      port = this.portUdpVideo;
       this._lastVideoHeader = payload.header;
     } else {
       return;
     }
+    // FFmpeg's RTP probation starts at sequence zero. Normalize each new local
+    // source to one so the first keyframe's leading fragment is not discarded.
+    // Keep subsequent gaps and wrap intact, and never mutate the caller's packet.
+    const sourceKey = `_${kind}SequenceSource`;
+    const offsetKey = `_${kind}SequenceOffset`;
+    if (this[sourceKey] !== payload.header.ssrc) {
+      this[sourceKey] = payload.header.ssrc;
+      this[offsetKey] = 1 - payload.header.sequenceNumber;
+    }
+    message.writeUInt16BE((payload.header.sequenceNumber + this[offsetKey]) & 65535, 2);
     this.socket.send(message, 0, message.length, port, '127.0.0.1', callback);
   }
 
@@ -227,7 +257,7 @@ class Recorder extends EventEmitter {
       // RTCP BYE ends both local RTP inputs. Unlike an immediate quit, EOF lets
       // FFmpeg drain its parser and muxer, preserving the final buffered frame.
       for (const [port, ssrc] of [
-        [this.portUdpH264, this._lastVideoHeader?.ssrc ?? 1],
+        [this.portUdpVideo, this._lastVideoHeader?.ssrc ?? 1],
         [this.portUdpOpus, this._lastAudioHeader?.ssrc ?? 2],
       ]) {
         // Include an empty, padded reason: FFmpeg's RTP demuxer requires at

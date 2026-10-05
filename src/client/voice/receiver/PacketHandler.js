@@ -23,7 +23,7 @@ const UNPADDED_NONCE_LENGTH = 4;
 const AUTH_TAG_LENGTH = 16;
 
 class Readable extends require('stream').Readable {
-  _read() {} // eslint-disable-line no-empty-function
+  _read() {}
 }
 
 /**
@@ -40,6 +40,7 @@ class PacketHandler extends EventEmitter {
     this.speakingTimeouts = new Map();
     this.videoFrames = new VideoFrames();
     this.videoSequences = new Map();
+    this.videoPictures = new Map();
     this.audioJitters = new Map();
     this.recovery = this.connection._mediaRecovery = new MediaRecovery(this.connection);
   }
@@ -74,9 +75,10 @@ class PacketHandler extends EventEmitter {
     return stream;
   }
 
-  makeVideoStream(user, output) {
+  makeVideoStream(user, output, options = {}) {
     if (this.videoStreams.has(user)) return this.videoStreams.get(user);
     const stream = new Recorder(this, {
+      ...options,
       userId: user,
       output,
     });
@@ -251,7 +253,9 @@ class PacketHandler extends EventEmitter {
         if (!frame) return;
         this.receiver.emit('videoFrame', userStat, plain, codec);
         if (streamInfo) {
-          const payloads = packetize(plain, codec);
+          const picture = this.videoPictures.get(ssrc) ?? 0;
+          const payloads = packetize(plain, codec, 1200, picture);
+          this.videoPictures.set(ssrc, (picture + 1) & 0x7fff);
           let sequence = this.videoSequences.get(ssrc) ?? packet.header.sequenceNumber;
           for (let i = 0; i < payloads.length; i++) {
             streamInfo.feed(
@@ -307,7 +311,7 @@ class PacketHandler extends EventEmitter {
         packet.header.sequenceNumber = packet.payload.readUInt16BE();
         packet.header.payloadType = codec.payload_type;
         packet.payload = packet.payload.subarray(2);
-        this.recovery.receive(packet);
+        this.recovery.receive(packet, true);
         this.videoReceiver(userStat.primarySsrc, userStat, packet);
       } else if (userStat.kind === 'video') {
         this.recovery.receive(packet);
@@ -350,6 +354,7 @@ class PacketHandler extends EventEmitter {
     this.audioJitters.delete(ssrc);
     this.recovery.sources.delete(ssrc);
     this.videoSequences.delete(ssrc);
+    this.videoPictures.delete(ssrc);
     clearTimeout(this.speakingTimeouts.get(ssrc));
     this.speakingTimeouts.delete(ssrc);
     for (const key of this.videoFrames.frames.keys()) {
@@ -366,6 +371,7 @@ class PacketHandler extends EventEmitter {
     this.videoFrames.frames.clear();
     this.videoFrames.completed.clear();
     this.videoSequences.clear();
+    this.videoPictures.clear();
     for (const stream of this.streams.values()) {
       stream.stream.destroy();
     }

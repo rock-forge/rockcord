@@ -106,7 +106,6 @@ class APIRequest {
           body.append('payload_json', JSON.stringify(this.options.data));
         }
       }
-      // eslint-disable-next-line eqeqeq
     } else if (this.options.data != null) {
       if (this.options.usePayloadJSON) {
         body = new FormData();

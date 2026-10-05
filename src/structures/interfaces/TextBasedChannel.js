@@ -1,14 +1,10 @@
 'use strict';
 
-/* eslint-disable import/order */
+/* eslint-disable import-x/order */
 const MessageCollector = require('../MessageCollector');
-const MessagePayload = require('../MessagePayload');
-const { InteractionTypes, ApplicationCommandOptionTypes, Events } = require('../../util/Constants');
-const { Error } = require('../../errors');
-const SnowflakeUtil = require('../../util/SnowflakeUtil');
 const { setTimeout } = require('node:timers');
 const { s } = require('@sapphire/shapeshift');
-const Util = require('../../util/Util');
+const { Error } = require('../../errors');
 const validateName = stringName =>
   s
     .string()
@@ -519,6 +515,10 @@ module.exports = TextBasedChannel;
 
 // Fixes Circular
 const MessageManager = require('../../managers/MessageManager');
+const { InteractionTypes, ApplicationCommandOptionTypes, Events } = require('../../util/Constants');
+const SnowflakeUtil = require('../../util/SnowflakeUtil');
+const Util = require('../../util/Util');
+const MessagePayload = require('../MessagePayload');
 
 // Utils
 function parseChoices(parent, list_choices, value) {

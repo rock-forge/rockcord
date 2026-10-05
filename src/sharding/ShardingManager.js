@@ -218,7 +218,7 @@ class ShardingManager extends EventEmitter {
       const shard = this.createShard(shardId);
       promises.push(shard.spawn(timeout));
       if (delay > 0 && this.shards.size !== this.shardList.length) promises.push(sleep(delay));
-      await Promise.all(promises); // eslint-disable-line no-await-in-loop
+      await Promise.all(promises);
     }
 
     return this.shards;
@@ -310,7 +310,7 @@ class ShardingManager extends EventEmitter {
     for (const shard of this.shards.values()) {
       const promises = [shard.respawn({ delay: respawnDelay, timeout })];
       if (++s < this.shards.size && shardDelay > 0) promises.push(sleep(shardDelay));
-      await Promise.all(promises); // eslint-disable-line no-await-in-loop
+      await Promise.all(promises);
     }
     return this.shards;
   }

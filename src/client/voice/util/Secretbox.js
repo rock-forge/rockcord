@@ -56,7 +56,7 @@ async function importModule(name, usingImport = false) {
   for (const libName of Object.keys(libs)) {
     try {
       const lib = await importModule(libName);
-      if (libName === 'libsodium-wrappers' && lib.ready) await lib.ready; // eslint-disable-line no-await-in-loop
+      if (libName === 'libsodium-wrappers' && lib.ready) await lib.ready;
       exports.methods = libs[libName](lib);
       break;
     } catch {} // eslint-disable-line no-empty

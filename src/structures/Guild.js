@@ -1062,7 +1062,6 @@ class Guild extends AnonymousGuild {
     return this.edit({ explicitContentFilter }, reason);
   }
 
-  /* eslint-disable max-len */
   /**
    * Edits the setting of the default message notifications of the guild.
    * @param {?(DefaultMessageNotificationLevel|number)} defaultMessageNotifications The new default message notification level of the guild
@@ -1072,7 +1071,6 @@ class Guild extends AnonymousGuild {
   setDefaultMessageNotifications(defaultMessageNotifications, reason) {
     return this.edit({ defaultMessageNotifications }, reason);
   }
-  /* eslint-enable max-len */
 
   /**
    * Edits the flags of the default message notifications of the guild.

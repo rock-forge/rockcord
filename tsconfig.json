@@ -14,8 +14,8 @@
     "strict": true,
     "useUnknownInCatchVariables": true,
     // Modules
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "resolveJsonModule": true,
     // Emit
     "declaration": false,

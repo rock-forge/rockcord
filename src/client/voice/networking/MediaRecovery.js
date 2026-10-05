@@ -1,7 +1,7 @@
 'use strict';
 
 const { Buffer } = require('node:buffer');
-const { setInterval } = require('node:timers');
+const { setInterval, setTimeout } = require('node:timers');
 const Util = require('../../../util/Util');
 const { encrypt, decrypt } = require('../util/TransportCrypto');
 
@@ -11,6 +11,7 @@ class MediaRecovery {
     this.connection = connection;
     this.cache = new Map();
     this.sources = new Map();
+    this.pendingRtx = new Set();
     this.rtxSequence = 0;
     this.stats = { requested: 0, retransmitted: 0, recovered: 0, expired: 0 };
   }
@@ -39,13 +40,33 @@ class MediaRecovery {
     });
   }
 
-  receive(packet) {
+  receive(packet, retransmission = false) {
     const { ssrc, sequenceNumber: seq } = packet.header;
     let source = this.sources.get(ssrc);
+    if (retransmission) {
+      if (source?.missing.delete(seq)) this.stats.recovered++;
+      return;
+    }
     if (!source) {
       if (this.sources.size >= 32) return;
-      this.sources.set(ssrc, (source = { highest: seq, missing: new Map() }));
+      this.sources.set(ssrc, {
+        highest: seq,
+        highestExtended: seq,
+        first: seq,
+        received: 1,
+        seen: new Set([seq]),
+        missing: new Map(),
+        reportedExpected: 0,
+        reportedReceived: 0,
+      });
+      if (!this.reportTimer) this.reportTimer = setInterval(() => this._report(), 1000).unref();
       return;
+    }
+    if (!source.seen.has(seq)) {
+      const age = (source.highest - seq) & 65535;
+      if (age < 128 || age >= 32768) source.received++;
+      source.seen.add(seq);
+      if (source.seen.size > 512) source.seen.delete(source.seen.values().next().value);
     }
     if (source.missing.delete(seq)) this.stats.recovered++;
     const distance = (seq - source.highest) & 65535;
@@ -61,6 +82,7 @@ class MediaRecovery {
       }
     }
     source.highest = seq;
+    source.highestExtended += distance;
     if (source.missing.size && !this.timer) this.timer = setInterval(() => this._tick(), 20).unref();
   }
 
@@ -129,11 +151,61 @@ class MediaRecovery {
       if (packet[offset] >> 6 !== 2 || size < 8 || offset + size > packet.length) return;
       if (packet[offset + 1] === 205 && (packet[offset] & 31) === 1 && size >= 16 && size % 4 === 0) {
         messages.push(packet.subarray(offset, offset + size));
+      } else if (packet[offset + 1] === 201 || packet[offset + 1] === 200) {
+        const base = packet[offset + 1] === 201 ? 8 : 28;
+        if (size < base + (packet[offset] & 31) * 24) return;
+        messages.push(packet.subarray(offset, offset + size));
       }
       offset += size;
     }
     if (offset !== packet.length) return;
-    for (const message of messages) this._handleNack(message);
+    for (const message of messages) {
+      if (message[1] === 205) this._handleNack(message);
+      else this._handleReport(message);
+    }
+  }
+
+  _handleReport(packet) {
+    const control = this.connection._congestionControl;
+    if (!control) return;
+    const reporter = packet.readUInt32BE(4);
+    const videoSsrc = this.connection.authentication.ssrc + 1;
+    const base = packet[1] === 201 ? 8 : 28;
+    for (let index = 0; index < (packet[0] & 31); index++) {
+      const offset = base + index * 24;
+      if (packet.readUInt32BE(offset) === videoSsrc) {
+        control.report(packet[offset + 4] / 256, packet.readUInt32BE(offset + 8), reporter);
+      }
+    }
+  }
+
+  _report() {
+    for (const [ssrc, source] of this.sources) {
+      const expected = source.highestExtended - source.first + 1;
+      const intervalExpected = expected - source.reportedExpected;
+      const intervalReceived = source.received - source.reportedReceived;
+      source.reportedExpected = expected;
+      source.reportedReceived = source.received;
+      if (!intervalExpected) continue;
+      const packet = Buffer.alloc(32);
+      packet[0] = 0x81;
+      packet[1] = 201;
+      packet.writeUInt16BE(7, 2);
+      packet.writeUInt32BE(this.connection.authentication.ssrc, 4);
+      packet.writeUInt32BE(ssrc, 8);
+      packet[12] = Math.max(
+        0,
+        Math.min(255, Math.floor(((intervalExpected - intervalReceived) * 256) / intervalExpected)),
+      );
+      packet.writeUIntBE(Math.max(0, Math.min(0x7fffff, expected - source.received)), 13, 3);
+      packet.writeUInt32BE(source.highestExtended >>> 0, 16);
+      try {
+        const header = packet.subarray(0, 8);
+        this._send(Buffer.concat([header, ...encrypt(this.connection, packet.subarray(8), header)]));
+      } catch (error) {
+        this.connection.receiver?.emit('debug', error);
+      }
+    }
   }
 
   _handleNack(packet) {
@@ -154,6 +226,7 @@ class MediaRecovery {
     const auth = this.connection.authentication;
     if (
       !item ||
+      !auth.secret_key ||
       !this.key?.equals(Buffer.from(auth.secret_key)) ||
       now - item.time > 2000 ||
       item.retries >= 3 ||
@@ -166,6 +239,7 @@ class MediaRecovery {
     if (!rtx) return;
     item.retries++;
     item.last = now;
+    if (ssrc === auth.ssrc + 1) this.connection._congestionControl?.nack(sequence);
     const header = Buffer.from(item.header);
     header[0] = 0x80;
     header[1] = (header[1] & 0x80) | item.type;
@@ -173,12 +247,37 @@ class MediaRecovery {
     header.writeUInt32BE(rtx, 8);
     const original = Buffer.alloc(2);
     original.writeUInt16BE(sequence);
-    try {
-      this._send(Buffer.concat([header, ...encrypt(this.connection, Buffer.concat([original, item.payload]), header)]));
-      this.stats.retransmitted++;
-    } catch (error) {
-      this.connection.receiver?.emit('debug', error);
+    const send = () => {
+      const current = this.connection.authentication;
+      if (
+        !current.secret_key ||
+        !this.key?.equals(Buffer.from(current.secret_key)) ||
+        performance.now() - item.time > 2000
+      )
+        return;
+      try {
+        this._send(
+          Buffer.concat([header, ...encrypt(this.connection, Buffer.concat([original, item.payload]), header)]),
+        );
+        this.stats.retransmitted++;
+      } catch (error) {
+        this.connection.receiver?.emit('debug', error);
+      }
+    };
+    const control = this.connection._congestionControl;
+    if (!control) {
+      send();
+      return;
     }
+    if (this.pendingRtx.size >= 128) return;
+    if (control.nextSendAt - performance.now() > 500) return;
+    const delay = control.delay(header.length + original.length + item.payload.length + 20);
+    if (delay > 500) return;
+    const timer = setTimeout(() => {
+      this.pendingRtx.delete(timer);
+      send();
+    }, delay).unref();
+    this.pendingRtx.add(timer);
   }
 
   _send(packet) {
@@ -187,9 +286,13 @@ class MediaRecovery {
 
   reset() {
     clearInterval(this.timer);
+    clearInterval(this.reportTimer);
+    this.reportTimer = null;
     this.timer = null;
     this.cache.clear();
     this.sources.clear();
+    for (const timer of this.pendingRtx) clearTimeout(timer);
+    this.pendingRtx.clear();
     this.rtxSequence = 0;
   }
 }

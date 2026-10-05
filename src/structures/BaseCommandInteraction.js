@@ -189,7 +189,7 @@ class BaseCommandInteraction extends Interaction {
   }
 
   // These are here only for documentation purposes - they are implemented by InteractionResponses
-  /* eslint-disable no-empty-function */
+
   deferReply() {}
   reply() {}
   fetchReply() {}
@@ -204,7 +204,6 @@ InteractionResponses.applyToClass(BaseCommandInteraction, ['deferUpdate', 'updat
 
 module.exports = BaseCommandInteraction;
 
-/* eslint-disable max-len */
 /**
  * @external APIInteractionDataResolved
  * @see {@link https://discord.com/developers/docs/interactions/receiving-and-responding#interaction-object-resolved-data-structure}

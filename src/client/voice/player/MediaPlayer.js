@@ -38,7 +38,20 @@ const FFMPEG_INPUT_PREFIX = [
   '4294',
 ];
 const FFMPEG_PCM_ARGUMENTS = ['-f', 's16le', '-ar', '48000', '-ac', '2'];
-const FFMPEG_VP8_ARGUMENTS = ['-f', 'ivf', '-deadline', 'realtime', '-c:v', 'libvpx'];
+const FFMPEG_VP8_ARGUMENTS = options => [
+  '-f',
+  'ivf',
+  '-deadline',
+  'realtime',
+  '-c:v',
+  'libvpx',
+  '-g',
+  String(Math.max(1, Math.round(options?.fps || 30))),
+  '-lag-in-frames',
+  '0',
+  '-auto-alt-ref',
+  '0',
+];
 const FFMPEG_H264_ARGUMENTS = options => [
   '-c:v',
   'libx264',
@@ -209,7 +222,7 @@ class MediaPlayer extends EventEmitter {
 
     // Get stream type
     if (this.voiceConnection.videoCodec === 'VP8') {
-      args.push(...FFMPEG_VP8_ARGUMENTS);
+      args.push(...FFMPEG_VP8_ARGUMENTS(options));
       // Remove  '-speed', '5' bc bad quality
     }
 
@@ -271,7 +284,6 @@ class MediaPlayer extends EventEmitter {
     return dispatcher;
   }
 
-  // eslint-disable-next-line no-unused-vars
   playAnnexBVideo(stream, options, streams, type) {
     this.destroyVideoDispatcher();
     let videoStream;
@@ -310,6 +322,7 @@ class MediaPlayer extends EventEmitter {
           streams,
           options?.fps,
         ));
+        dispatcher.configureCongestion(options);
         return dispatcher;
       }
       case 'H264': {
@@ -319,6 +332,7 @@ class MediaPlayer extends EventEmitter {
           streams,
           options?.fps,
         ));
+        dispatcher.configureCongestion(options);
         return dispatcher;
       }
       case 'H265': {
@@ -328,6 +342,7 @@ class MediaPlayer extends EventEmitter {
           streams,
           options?.fps,
         ));
+        dispatcher.configureCongestion(options);
         return dispatcher;
       }
       default: {

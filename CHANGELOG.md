@@ -1,5 +1,16 @@
 # Changelog
 
+## 4.0.0 — Stable media and dependency repairs
+
+- Add loss-based adaptive video packet pacing: authenticated RTCP receiver reports lower the send rate under loss and allow gradual recovery. NACK feedback provides a fallback; retransmissions share the pacing budget. Queues, timers, retries and rate bounds are finite.
+- Record H264, VP8 or H265 with Opus to Matroska files or Writable streams. Preserve the existing H264 default, normalize local RTP sequence startup, and advance VP8 picture IDs.
+- Serialize the initial complete encrypted media frame before concurrent audio/video encryption to preserve native DAVE startup nonce ordering. Prevent synchronization deadlocks and cancel startup waits during destruction.
+- Give VP8 regular keyframes and disable encoder lookahead. Preserve whole encrypted frames under pacing and stop queued sends when the transport key changes.
+- Review all twelve dependency PRs; update compatible tooling, cookies and HTTP transport. Use the synchronous otplib v12 adapter with independent client instances. Require Node 22.19.0 or newer.
+- Migrate to ESLint 10 flat configuration, import-x and Prettier 3. Upgrade documentation generation to asynchronous parsing; use jsdoc-to-markdown 8.0.3 because the proposed v9 dependency tree introduces an unpatched advisory.
+- Retain Node 22 types, Shapeshift 4, TypeScript 5.9 and opusscript 0.0.8 for existing platform/API/peer compatibility. Group routine Dependabot updates and reduce duplicate CI work.
+- Repair group-DM invite code resolution and Samsung presence timer cleanup. Expand regression and real FFmpeg recording checks. See the implementation report for live and platform verification results.
+
 ## 4.0.0-dev.5 — Media reliability
 
 - Recreate the public Rock Forge repository with fresh maintainer commit history; retain original source/license credits and a local backup of historical Git data and releases.

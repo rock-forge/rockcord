@@ -3,6 +3,23 @@ updates:
 - package-ecosystem: npm
   directory: "/"
   schedule:
-    interval: daily
+    interval: weekly
     time: "12:00"
-  open-pull-requests-limit: 15
+  open-pull-requests-limit: 5
+  groups:
+    compatible-updates:
+      patterns: ['*']
+      update-types: [minor, patch]
+  ignore:
+    # Keep declarations compatible with the oldest supported Node LTS.
+    - dependency-name: '@types/node'
+      versions: ['>=23']
+    # Shapeshift 5 requires Node 26 and Node 26 declarations.
+    - dependency-name: '@sapphire/shapeshift'
+      versions: ['>=5']
+    # Prism's published peer range currently requires opusscript 0.0.8.
+    - dependency-name: 'opusscript'
+      versions: ['>=0.1']
+    # TypeScript 7 has no JS compiler API; export coverage uses that API.
+    - dependency-name: 'typescript'
+      update-types: [version-update:semver-major]

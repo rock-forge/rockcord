@@ -87,7 +87,7 @@ class ThreadChannel extends Channel {
        * <info>Always `null` in public threads</info>
        * @type {?boolean}
        */
-      this.invitable = this.type === 'GUILD_PRIVATE_THREAD' ? data.thread_metadata.invitable ?? false : null;
+      this.invitable = this.type === 'GUILD_PRIVATE_THREAD' ? (data.thread_metadata.invitable ?? false) : null;
 
       /**
        * Whether the thread is archived
@@ -305,7 +305,7 @@ class ThreadChannel extends Channel {
    * @param {BaseFetchOptions} [options] Additional options for this fetch
    * @returns {Promise<Message|null>}
    */
-  // eslint-disable-next-line require-await
+
   async fetchStarterMessage(options) {
     const channel = this.parent?.type === 'GUILD_FORUM' ? this : this.parent;
     return channel?.messages.fetch(this.id, options) ?? null;
@@ -589,7 +589,7 @@ class ThreadChannel extends Channel {
   }
 
   // These are here only for documentation purposes - they are implemented by TextBasedChannel
-  /* eslint-disable no-empty-function */
+
   get lastMessage() {}
   get lastPinAt() {}
   send() {}

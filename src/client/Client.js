@@ -1,11 +1,10 @@
-/* eslint-disable no-unreachable */
 'use strict';
 
 const process = require('node:process');
 const { setInterval } = require('node:timers');
 const { setTimeout } = require('node:timers');
 const { Collection } = require('@discordjs/collection');
-const { authenticator } = require('otplib');
+const { authenticator } = require('@otplib/v12-adapter');
 const BaseClient = require('./BaseClient');
 const ActionsManager = require('./actions/ActionsManager');
 const ClientVoiceManager = require('./voice/ClientVoiceManager');
@@ -205,7 +204,7 @@ class Client extends BaseClient {
      * The authenticator used for TOTP
      * @type {Object}
      */
-    this.authenticator = authenticator;
+    this.authenticator = authenticator.create({ guardrails: { MIN_SECRET_BYTES: 1 } });
 
     this.authenticator.options = {
       step: 30,
@@ -352,6 +351,7 @@ class Client extends BaseClient {
    * @returns {void}
    */
   destroy() {
+    this.user?._stopSamsungPresence?.();
     super.destroy();
 
     for (const fn of this._cleanups) fn();

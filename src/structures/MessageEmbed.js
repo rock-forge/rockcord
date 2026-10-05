@@ -37,7 +37,6 @@ class MessageEmbed {
    * @property {Partial<MessageEmbedFooter>} [footer] The footer of this embed
    */
 
-  // eslint-disable-next-line valid-jsdoc
   /**
    * @param {MessageEmbed|MessageEmbedOptions|APIEmbed} [data={}] MessageEmbed to clone or raw embed data
    */
@@ -320,7 +319,6 @@ class MessageEmbed {
   addField(name, value, inline) {
     if (!deprecationEmittedForAddField) {
       process.emitWarning(
-        // eslint-disable-next-line max-len
         'MessageEmbed#addField is deprecated and will be removed in the next major update. Use MessageEmbed#addFields instead.',
         'DeprecationWarning',
       );
