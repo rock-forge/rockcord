@@ -1013,7 +1013,7 @@ export interface JoinChannelConfig {
   videoCodec?: VideoCodec;
 }
 
-export type VideoCodec = 'VP8' | 'H264';
+export type VideoCodec = 'VP8' | 'H264' | 'H265';
 
 export class VolumeInterface extends EventEmitter {
   constructor(options?: { volume?: number });

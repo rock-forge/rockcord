@@ -40,3 +40,8 @@ connection.receiver.on('videoFrame', (user, bytes, codec) => {
   expectType<Buffer>(bytes);
   expectType<'H264' | 'H265' | 'VP8'>(codec);
 });
+connection.setVideoCodec('H265');
+expectType<Recorder<false, any>>(connection.receiver.createVideoStream('123', 'capture.mkv', { codec: 'H265' }));
+expectType<Recorder<false, any>>(connection.receiver.createVideoStream('123', 'capture.mkv', { codec: 'VP8' }));
+const paced = connection.playVideo('video.mp4', { bitrate: 2000, congestionControl: { minBitrate: 128 } });
+expectType<number | undefined>(paced.congestionControl?.state.targetBitrate);
