@@ -61,7 +61,7 @@
     "@sapphire/async-queue": "^1.5.5",
     "@sapphire/shapeshift": "^4.0.0",
     "@snazzah/davey": "0.1.12",
-    "@types/node": "^22.10.7",
+    "@types/node": "^26.6.4",
     "@types/ws": "^8.5.10",
     "discord-api-types": "^0.38.15",
     "fetch-cookie": "^3.1.0",
