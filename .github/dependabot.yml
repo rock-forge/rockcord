@@ -23,3 +23,6 @@ updates:
     # TypeScript 7 has no JS compiler API; export coverage uses that API.
     - dependency-name: 'typescript'
       update-types: [version-update:semver-major]
+    # The v9 documentation tree includes the unpatched braces advisory.
+    - dependency-name: 'jsdoc-to-markdown'
+      versions: ['>=9 <10']
