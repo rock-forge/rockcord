@@ -61,7 +61,7 @@
     "@otplib/v12-adapter": "^13.5.0",
     "@sapphire/async-queue": "^1.5.5",
     "@sapphire/shapeshift": "^4.0.0",
-    "@snazzah/davey": "0.1.12",
+    "@snazzah/davey": "0.2.0",
     "@types/node": "^22.10.7",
     "@types/ws": "^8.5.10",
     "discord-api-types": "^0.38.15",
